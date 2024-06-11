@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Likes extends Model
+class Playlist extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'user_id',
-        'likeable_id',
+        'name',
+        'playlist_id',
     ];
 
     public function user()
@@ -20,9 +21,6 @@ class Likes extends Model
 
     public function music()
     {
-        return $this->belongsTo(Music::class);
+        return $this->belongsToMany(Music::class, 'playlist_music');
     }
 }
-
-
-

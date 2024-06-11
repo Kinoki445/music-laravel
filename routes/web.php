@@ -9,6 +9,9 @@ use App\Http\Controllers\UserController;
 Route::get('/', [ViewsController::class,'index'])
     -> name('site.index');
 
+Route::get('/tracks', [ActionsController::class, 'index'])
+    ->name('tracks.index');
+
 Route::get('/register', [ViewsController::class, 'register'])
     -> name('site.register')
     -> middleware('guest');
@@ -43,7 +46,19 @@ Route::get('/user/{id}', [ActionsController::class, 'show'])
 Route::get('/profile/{id}', [ActionsController::class,'profile'])
     ->name('site.profile');
 
-Route::post('/music/{musicId}/like', [ActionsController::class, 'set_like'])
+Route::post('/music/{musicID}/like', [ActionsController::class, 'add_like'])
+    ->middleware('auth')
     ->name('music.like');
-Route::delete('/music/{musicId}/like', [ActionsController::class, 'destroy_like'])
-    ->name('music.unlike');
+
+Route::get('/music/playlist', [ViewsController::class,'create_playlist'])
+    ->name('playlist.create')
+    ->middleware('auth');
+
+Route::post('/music/playlist', [ActionsController::class,'create_playlist'])
+    ->middleware('auth');
+
+Route::get('/playlist', [ViewsController::class,'show_playlist'])
+    ->name('playlist.index');
+
+Route::get('/playlist/{id}', [ActionsController::class,'show_playlist'])
+    ->name('playlist.show');

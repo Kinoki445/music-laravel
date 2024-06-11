@@ -45,8 +45,13 @@ class User extends Authenticatable
         ];
     }
 
+    public function posts()
+    {
+        return $this->hasMany(Music::class, 'user_id');
+    }
+
     public function likes()
-{
-    return $this->hasMany(Likes::class);
-}
+    {
+        return $this->hasMany(Likes::class);
+    }
 }

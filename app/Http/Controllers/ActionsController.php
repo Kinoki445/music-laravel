@@ -4,12 +4,36 @@ namespace App\Http\Controllers;
 
 use App\Models\Likes;
 use App\Models\Music;
+use App\Models\Playlist;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class ActionsController extends Controller
 {
+    public function index(Request $request)
+    {
+        $sort = $request->query('sort');
+
+        $tracks = Music::query();
+
+        switch ($sort) {
+            case 'year_asc':
+                $tracks->orderBy('year', 'asc');
+                break;
+            case 'year_desc':
+                $tracks->orderBy('year', 'desc');
+                break;
+            default:
+                $tracks->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $tracks = $tracks->get();
+
+        return view('index', compact('tracks'));
+    }
+
     public function register(Request $request)
     {
         $request->validate([
@@ -118,23 +142,40 @@ class ActionsController extends Controller
         return view('user.profile', ['user' => $user, 'music' => $music]);
     }
 
-    public function set_like(Request $request, $musicId)
+    public function add_like(int $music_id)
     {
-        $like = new Likes();
-        $like->user_id = auth()->id();
-        $like->music_id = $musicId;
-        $like->save();
+        $music = Music::find($music_id);
+        $like = $music->likes()->where('user_id', auth()->id())->first();
+
+        if ($like) {
+            $like->delete();
+        } else {
+            $music->likes()->create([
+                'user_id' => auth()->id(),
+                'music_id' => $music_id
+            ]);
+        }
 
         return back();
     }
 
-    public function destroy_like($musicId)
+    public function create_playlist(Request $request)
 {
-    $like = Likes::where('music_id', $musicId)->where('user_id', auth()->id())->first();
-    if ($like) {
-        $like->delete();
+    $validated = $request->validate([
+        'playlist.title' => 'required|string|max:255',
+        'playlist.tracks' => 'nullable|array',
+        'playlist.tracks.*' => 'exists:music,id',
+    ]);
+
+    $playlist = new Playlist();
+    $playlist->title = $validated['playlist']['title'];
+    $playlist->user_id = auth()->id();
+    $playlist->save();
+
+    if (!empty($validated['playlist']['tracks'])) {
+        $playlist->music()->attach($validated['playlist']['tracks']);
     }
 
-    return back();
+    return redirect()->route('site.index')->with('success', 'Playlist created successfully!');
 }
 }
